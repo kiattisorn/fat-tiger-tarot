@@ -92,7 +92,7 @@
 
         <!-- Result Box (แสดงคำทำนายทีละชุด) -->
         <div id="resultBox" class="hidden space-y-6">
-            <div id="sectionsContainer" class="space-y-4"></div>
+            <div id="sectionsContainer" class="space-y-6"></div>
 
             <div class="text-center pt-2">
                 <button id="nextBtn" onclick="showNextSection()" 
@@ -173,7 +173,6 @@
             const resultBox = document.getElementById('resultBox');
             const statusText = document.getElementById('statusText');
 
-            // 1. สุ่มไพ่ 10 ใบ
             const shuffled = [...tarotDeck].sort(() => 0.5 - Math.random());
             drawnCards = celticCrossPositions.map((pos, idx) => ({ position: pos, ...shuffled[idx] }));
 
@@ -209,15 +208,17 @@
             btn.disabled = true;
             btn.innerText = "🔮 กำลังเปิดไพ่ตามผัง...";
 
+            // พลิกเปิดไพ่ทีละใบ
             for (let i = 0; i < 10; i++) {
-                await new Promise(r => setTimeout(r, 400));
+                await new Promise(r => setTimeout(r, 350));
                 flipCard(i);
             }
 
             statusText.innerText = "เปิดไพ่ครบทั้ง 10 ใบเรียบร้อยแล้ว! 🌟";
 
-            // 2. เริ่มแอนิเมชันนับถอยหลัง & Progress Bar
+            // สั่ง Auto-scroll เลื่อนลงมายังกล่องประมวลผลคำทำนาย
             loadingBox.classList.remove('hidden');
+            loadingBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
             startProgressAnimation();
 
             try {
@@ -267,7 +268,7 @@
                 percent += 8;
                 secondsLeft = Math.max(0, secondsLeft - 1);
                 
-                if (percent > 92) percent = 92; // รอจนกว่า API จะตอบจริง
+                if (percent > 92) percent = 92;
                 progressBar.style.width = percent + '%';
                 timerText.innerText = `กำลังประมวลผล... (เหลือเวลาประมาณ ${secondsLeft} วินาที)`;
                 
@@ -287,6 +288,29 @@
             const sec = fetchedSections[currentSectionIndex];
             const container = document.getElementById('sectionsContainer');
 
+            // ดึงข้อมูลไพ่ที่สอดคล้องกับ Section ปัจจุบัน
+            let sectionCards = [];
+            if (currentSectionIndex === 0) sectionCards = drawnCards.slice(0, 3);
+            else if (currentSectionIndex === 1) sectionCards = drawnCards.slice(3, 6);
+            else if (currentSectionIndex === 2) sectionCards = drawnCards.slice(6, 9);
+            else if (currentSectionIndex === 3) sectionCards = drawnCards.slice(9, 10);
+
+            // สร้าง UI แสดงการ์ดไพ่ประจำ Section
+            const cardsHtml = `
+                <div class="grid ${sectionCards.length === 1 ? 'grid-cols-1 max-w-xs mx-auto' : 'grid-cols-3'} gap-2.5 my-3">
+                    ${sectionCards.map(card => `
+                        <div class="bg-amber-900/80 border border-amber-500/40 rounded-xl p-2 text-center shadow-md">
+                            <div class="text-[10px] sm:text-xs text-amber-300 font-bold leading-tight mb-1 truncate">${card.position.split(':')[0]}</div>
+                            <div class="h-28 sm:h-36 rounded-lg overflow-hidden border border-amber-500/40 bg-amber-950 flex items-center justify-center">
+                                <img src="${card.img}" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'text-3xl\'>🐯</div>';">
+                            </div>
+                            <div class="text-xs font-bold text-amber-100 truncate mt-1.5">${card.nameTh}</div>
+                            <div class="text-[9px] text-amber-400/80 truncate">${card.type}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
             const sectionCard = document.createElement('div');
             sectionCard.className = 'bg-amber-950/90 border-2 border-amber-400/50 rounded-2xl p-5 sm:p-6 text-amber-100 leading-relaxed space-y-3 shadow-xl transform transition-all duration-500 opacity-0 translate-y-4';
             
@@ -296,6 +320,9 @@
                     <h3 class="font-bold text-amber-300 text-base sm:text-lg">${sec.title}</h3>
                 </div>
                 
+                <!-- ไพ่ประจำ Section -->
+                ${cardsHtml}
+
                 <!-- สรุปสั้นประจำ Section -->
                 <div class="bg-amber-500/15 border border-amber-400/40 rounded-xl p-3.5 text-amber-200 text-xs sm:text-sm font-semibold flex items-start space-x-2">
                     <span class="text-base leading-none">⚡️</span>
@@ -313,7 +340,6 @@
 
             container.appendChild(sectionCard);
 
-            // Trigger Animation
             setTimeout(() => {
                 sectionCard.classList.remove('opacity-0', 'translate-y-4');
                 sectionCard.scrollIntoView({ behavior: 'smooth', block: 'end' });
