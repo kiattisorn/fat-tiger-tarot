@@ -259,7 +259,7 @@
                         <div class="card-back absolute inset-0 bg-amber-900 border-2 border-amber-300 rounded-xl flex flex-col justify-between p-1.5 sm:p-2 overflow-hidden card-flipped">
                             <div class="text-[9px] sm:text-[10px] text-amber-300 font-bold text-center leading-tight mb-1 truncate">${card.position.split(':')[0]}</div>
                             <div class="flex-1 w-full rounded-md overflow-hidden bg-black flex items-center justify-center p-0.5">
-                                <img src="${card.img}" class="w-full h-full object-contain" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'text-xs font-bold text-amber-300 p-2 text-center\\'>${card.name}</div>';">
+                                <img src="${card.img}" class="w-full h-full object-contain" onerror="this.style.display='none'">
                             </div>
                             <div class="text-center mt-1">
                                 <div class="text-[10px] sm:text-xs font-bold text-amber-200 truncate">${card.name}</div>
@@ -293,11 +293,10 @@
                 const focusInner = document.getElementById('focusCardInner');
                 const focusBack = document.getElementById('focusCardBack');
 
-                // เอาไอคอนรูปเสือออก เปลี่ยนเป็นแสดงชื่อสากลแทนหากโหลดรูปไม่สำเร็จ
                 focusBack.innerHTML = `
                     <div class="text-sm sm:text-base text-amber-300 font-bold text-center leading-tight mb-2 tracking-wide">${card.position}</div>
                     <div class="flex-1 w-full rounded-xl overflow-hidden bg-black flex items-center justify-center p-1 border border-amber-500/50">
-                        <img src="${card.img}" class="w-full h-full object-contain" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'text-base font-bold text-amber-200 p-4 text-center\\'>${card.name}</div>';">
+                        <img src="${card.img}" class="w-full h-full object-contain" onerror="this.style.display='none'">
                     </div>
                     <div class="text-center mt-3">
                         <div class="text-lg sm:text-xl font-bold text-amber-200 tracking-wider">${card.name}</div>
@@ -462,7 +461,7 @@
                         <div class="bg-amber-900/80 border border-amber-500/40 rounded-xl p-2 text-center shadow-md">
                             <div class="text-[10px] sm:text-xs text-amber-300 font-bold leading-tight mb-1 truncate">${card.position.split(':')[0]}</div>
                             <div class="aspect-[2/3] w-full rounded-lg overflow-hidden bg-black flex items-center justify-center p-0.5">
-                                <img src="${card.img}" class="w-full h-full object-contain" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'text-xs font-bold text-amber-300 p-1 text-center\\'>${card.name}</div>';">
+                                <img src="${card.img}" class="w-full h-full object-contain" onerror="this.style.display='none'">
                             </div>
                             <div class="text-[11px] sm:text-xs font-bold text-amber-100 truncate mt-1.5">${card.name}</div>
                         </div>
