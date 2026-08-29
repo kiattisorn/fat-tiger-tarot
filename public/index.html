@@ -13,11 +13,17 @@
         .card-flipped { transform: rotateY(180deg); }
         .card-front, .card-back { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
         .card-back { transform: rotateY(180deg); }
+        
+        @keyframes pulse-fast {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+        .tiger-bounce { animation: pulse-fast 1.2s infinite ease-in-out; }
     </style>
 </head>
 <body class="bg-amber-950 text-amber-50 min-h-screen flex flex-col items-center p-3 sm:p-6">
 
-    <div class="max-w-5xl w-full bg-amber-900/80 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 shadow-2xl my-auto space-y-6">
+    <div class="max-w-4xl w-full bg-amber-900/80 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 shadow-2xl my-auto space-y-6">
         
         <!-- Header -->
         <div class="text-center space-y-2">
@@ -62,20 +68,37 @@
 
         <!-- Cards Layout Zone -->
         <div id="cardsSection" class="hidden space-y-4">
-            <h3 id="statusText" class="text-center font-bold text-amber-300 text-base animate-pulse">
-                เสืออ้วนนักทำนายกำลังค่อยๆ เปิดไพ่ทีละใบ... 🐯
+            <h3 id="statusText" class="text-center font-bold text-amber-300 text-base">
+                เสืออ้วนนักทำนายกำลังเปิดไพ่... 🐯
             </h3>
             <div id="cardsDisplay" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"></div>
         </div>
 
-        <!-- Result Box -->
-        <div id="resultBox" class="hidden bg-amber-950/90 border-2 border-amber-400/50 rounded-2xl p-6 text-amber-100 leading-relaxed space-y-3">
-            <div class="flex items-center space-x-2 border-b border-amber-800 pb-3">
-                <span class="text-2xl">📜</span>
-                <h3 class="font-bold text-amber-300 text-lg">คำทำนายจากเสืออ้วนนักทำนาย</h3>
+        <!-- Progress Loading Modal/Box (อนิเมชันนับถอยหลัง) -->
+        <div id="loadingBox" class="hidden bg-amber-950/90 border-2 border-amber-500/60 rounded-2xl p-6 text-center space-y-4 shadow-xl">
+            <div class="text-5xl tiger-bounce">🐯</div>
+            <div class="space-y-1">
+                <h4 id="loadingTitle" class="text-lg font-bold text-amber-300">กำลังเพ่งจิตถอดรหัสคำทำนาย...</h4>
+                <p id="loadingSubtitle" class="text-xs text-amber-200/80">เสืออ้วนกำลังสื่อสารกับพลังงานของไพ่ทั้ง 10 ใบ</p>
             </div>
-            <div id="aiResponse" class="whitespace-pre-line text-sm sm:text-base text-amber-100/90">
-                เสืออ้วนกำลังประมวลผลคำทำนายจากไพ่ทั้ง 10 ใบ...
+            
+            <!-- Progress Bar -->
+            <div class="w-full bg-amber-900/80 rounded-full h-3.5 border border-amber-700/60 p-0.5 overflow-hidden">
+                <div id="progressBar" class="bg-gradient-to-r from-amber-500 to-orange-400 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            
+            <div class="text-xs font-mono text-amber-400 font-semibold" id="timerText">ประมาณเวลา 12 วินาที</div>
+        </div>
+
+        <!-- Result Box (แสดงคำทำนายทีละชุด) -->
+        <div id="resultBox" class="hidden space-y-6">
+            <div id="sectionsContainer" class="space-y-4"></div>
+
+            <div class="text-center pt-2">
+                <button id="nextBtn" onclick="showNextSection()" 
+                    class="bg-gradient-to-r from-amber-400 to-orange-500 text-amber-950 font-bold text-base px-8 py-3.5 rounded-xl shadow-lg transition transform hover:scale-105 active:scale-95">
+                    อ่านคำทำนายส่วนต่อไป 🐾
+                </button>
             </div>
         </div>
 
@@ -83,22 +106,14 @@
 
     <script>
         const cardBackImg = "images/card-back.jpg";
-
-        // ตำแหน่งผังไพ่มาตรฐานสากล 10 ใบ (Celtic Cross)
         const celticCrossPositions = [
-            "ตำแหน่งที่ 1: สถานการณ์ปัจจุบัน",
-            "ตำแหน่งที่ 2: อุปสรรค / สิ่งท้าทาย",
-            "ตำแหน่งที่ 3: รากฐาน / อดีตที่ส่งผล",
-            "ตำแหน่งที่ 4: อดีตที่เพิ่งผ่านพ้น",
-            "ตำแหน่งที่ 5: ความคิด / เป้าหมาย",
-            "ตำแหน่งที่ 6: อนาคตอันใกล้",
-            "ตำแหน่งที่ 7: ทัศนคติของตนเอง",
-            "ตำแหน่งที่ 8: อิทธิพลภายนอก",
-            "ตำแหน่งที่ 9: ความหวังและความกลัว",
-            "ตำแหน่งที่ 10: บทสรุปและผลลัพธ์"
+            "ตำแหน่งที่ 1: สถานการณ์ปัจจุบัน", "ตำแหน่งที่ 2: อุปสรรค / สิ่งท้าทาย",
+            "ตำแหน่งที่ 3: รากฐาน / อดีตที่ส่งผล", "ตำแหน่งที่ 4: อดีตที่เพิ่งผ่านพ้น",
+            "ตำแหน่งที่ 5: ความคิด / เป้าหมาย", "ตำแหน่งที่ 6: อนาคตอันใกล้",
+            "ตำแหน่งที่ 7: ทัศนคติของตนเอง", "ตำแหน่งที่ 8: อิทธิพลภายนอก",
+            "ตำแหน่งที่ 9: ความหวังและความกลัว", "ตำแหน่งที่ 10: บทสรุปและผลลัพธ์"
         ];
 
-        // ฐานข้อมูลไพ่ทาโร่สากล 78 ใบ
         const tarotDeck = [
             { name: "The Fool", nameTh: "0. ไพ่เจ้าตัวยุ่งผู้เริ่มต้น", type: "Major Arcana", img: "images/cards/0_fool.jpg" },
             { name: "The Magician", nameTh: "I. ไพ่เสือวิเศษผู้มีพรสวรรค์", type: "Major Arcana", img: "images/cards/1_magician.jpg" },
@@ -137,6 +152,9 @@
         ];
 
         let drawnCards = [];
+        let fetchedSections = [];
+        let currentSectionIndex = 0;
+        let progressInterval = null;
 
         async function drawCards() {
             const question = document.getElementById('question').value.trim();
@@ -151,22 +169,19 @@
             const btn = document.getElementById('submitBtn');
             const cardsSection = document.getElementById('cardsSection');
             const cardsDisplay = document.getElementById('cardsDisplay');
+            const loadingBox = document.getElementById('loadingBox');
             const resultBox = document.getElementById('resultBox');
-            const aiResponse = document.getElementById('aiResponse');
             const statusText = document.getElementById('statusText');
 
-            // สุ่มไพ่ 10 ใบแบบไม่ซ้ำกัน
+            // 1. สุ่มไพ่ 10 ใบ
             const shuffled = [...tarotDeck].sort(() => 0.5 - Math.random());
-            drawnCards = celticCrossPositions.map((pos, idx) => ({
-                position: pos,
-                ...shuffled[idx]
-            }));
+            drawnCards = celticCrossPositions.map((pos, idx) => ({ position: pos, ...shuffled[idx] }));
 
             cardsSection.classList.remove('hidden');
             resultBox.classList.add('hidden');
+            loadingBox.classList.add('hidden');
             statusText.innerText = "เสืออ้วนนักทำนายกำลังค่อยๆ พลิกเปิดไพ่ทีละใบ... 🐯";
 
-            // สร้าง UI แสดงไพ่หมอบคว่ำไว้ทั้ง 10 ใบ
             cardsDisplay.innerHTML = drawnCards.map((card, idx) => `
                 <div class="perspective">
                     <div id="card-inner-${idx}" class="card-inner relative w-full h-64 rounded-xl shadow-lg">
@@ -192,17 +207,18 @@
             `).join('');
 
             btn.disabled = true;
-            btn.innerText = "🔮 กำลังเปิดไพ่ตามลำดับผัง...";
+            btn.innerText = "🔮 กำลังเปิดไพ่ตามผัง...";
 
-            // ค่อยๆ พลิกเปิดไพ่ทีละใบโดยมีการหน่วงเวลา (Sequential Flipping)
             for (let i = 0; i < 10; i++) {
-                await new Promise(r => setTimeout(r, 450));
+                await new Promise(r => setTimeout(r, 400));
                 flipCard(i);
             }
 
-            statusText.innerText = "เปิดไพ่ครบ 10 ใบแล้ว! เสืออ้วนกำลังเริ่มวิเคราะห์คำทำนาย... ✨";
-            resultBox.classList.remove('hidden');
-            aiResponse.innerText = "🐯 เสืออ้วนนักทำนายกำลังเรียบเรียงคำทำนายจากผังไพ่ทั้ง 10 ใบ...";
+            statusText.innerText = "เปิดไพ่ครบทั้ง 10 ใบเรียบร้อยแล้ว! 🌟";
+
+            // 2. เริ่มแอนิเมชันนับถอยหลัง & Progress Bar
+            loadingBox.classList.remove('hidden');
+            startProgressAnimation();
 
             try {
                 const res = await fetch('/api/predict', {
@@ -212,17 +228,106 @@
                 });
 
                 const data = await res.json();
-                if (res.ok && data.result) {
-                    aiResponse.innerText = data.result;
-                    statusText.innerText = "การทำนายดวงชะตาสมบูรณ์เรียบร้อย 🌟";
+                stopProgressAnimation();
+
+                if (res.ok && data.sections) {
+                    fetchedSections = data.sections;
+                    currentSectionIndex = 0;
+                    loadingBox.classList.add('hidden');
+                    resultBox.classList.remove('hidden');
+                    document.getElementById('sectionsContainer').innerHTML = '';
+                    showNextSection();
                 } else {
-                    aiResponse.innerText = `เกิดข้อผิดพลาด: ${data.error || 'ไม่สามารถรับคำทำนายได้'}`;
+                    alert(`เกิดข้อผิดพลาด: ${data.error || 'ไม่สามารถรับคำทำนายได้'}`);
                 }
             } catch (err) {
-                aiResponse.innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบทำนายดวง";
+                stopProgressAnimation();
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบคำทำนาย");
             } finally {
                 btn.disabled = false;
                 btn.innerText = "🐾 สับไพ่และเริ่มเปิดไพ่ 10 ใบ";
+            }
+        }
+
+        function startProgressAnimation() {
+            let secondsLeft = 12;
+            let percent = 0;
+            const progressBar = document.getElementById('progressBar');
+            const timerText = document.getElementById('timerText');
+            const loadingSubtitle = document.getElementById('loadingSubtitle');
+
+            const messages = [
+                "เสืออ้วนกำลังเปิดตำราอ่านพลังงาน...",
+                "กำลังเชื่อมโยงอดีต ปัจจุบัน และอนาคต...",
+                "กำลังกลั่นกรองคำแนะนำสำหรับคุณ...",
+                "ใกล้เสร็จแล้ว เสืออ้วนกำลังเรียบเรียงตัวอักษร..."
+            ];
+
+            progressInterval = setInterval(() => {
+                percent += 8;
+                secondsLeft = Math.max(0, secondsLeft - 1);
+                
+                if (percent > 92) percent = 92; // รอจนกว่า API จะตอบจริง
+                progressBar.style.width = percent + '%';
+                timerText.innerText = `กำลังประมวลผล... (เหลือเวลาประมาณ ${secondsLeft} วินาที)`;
+                
+                let msgIdx = Math.floor((100 - percent) / 25);
+                loadingSubtitle.innerText = messages[Math.min(msgIdx, messages.length - 1)];
+            }, 800);
+        }
+
+        function stopProgressAnimation() {
+            if (progressInterval) clearInterval(progressInterval);
+            document.getElementById('progressBar').style.width = '100%';
+        }
+
+        function showNextSection() {
+            if (currentSectionIndex >= fetchedSections.length) return;
+
+            const sec = fetchedSections[currentSectionIndex];
+            const container = document.getElementById('sectionsContainer');
+
+            const sectionCard = document.createElement('div');
+            sectionCard.className = 'bg-amber-950/90 border-2 border-amber-400/50 rounded-2xl p-5 sm:p-6 text-amber-100 leading-relaxed space-y-3 shadow-xl transform transition-all duration-500 opacity-0 translate-y-4';
+            
+            sectionCard.innerHTML = `
+                <div class="flex items-center space-x-2 border-b border-amber-800/80 pb-2">
+                    <span class="text-xl">📜</span>
+                    <h3 class="font-bold text-amber-300 text-base sm:text-lg">${sec.title}</h3>
+                </div>
+                
+                <!-- สรุปสั้นประจำ Section -->
+                <div class="bg-amber-500/15 border border-amber-400/40 rounded-xl p-3.5 text-amber-200 text-xs sm:text-sm font-semibold flex items-start space-x-2">
+                    <span class="text-base leading-none">⚡️</span>
+                    <div>
+                        <span class="text-amber-300 font-bold uppercase">สรุปใจความสำคัญ:</span>
+                        <span>${sec.summary}</span>
+                    </div>
+                </div>
+
+                <!-- รายละเอียดคำทำนาย -->
+                <div class="text-sm sm:text-base text-amber-100/95 whitespace-pre-line pt-1">
+                    ${sec.content}
+                </div>
+            `;
+
+            container.appendChild(sectionCard);
+
+            // Trigger Animation
+            setTimeout(() => {
+                sectionCard.classList.remove('opacity-0', 'translate-y-4');
+                sectionCard.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }, 50);
+
+            currentSectionIndex++;
+
+            const nextBtn = document.getElementById('nextBtn');
+            if (currentSectionIndex >= fetchedSections.length) {
+                nextBtn.innerText = "✨ อ่านคำทำนายครบแล้ว (เปิดดวงใหม่กดปุ่มด้านบน)";
+                nextBtn.disabled = true;
+                nextBtn.classList.add('opacity-60', 'cursor-not-allowed');
+            } else {
+                nextBtn.innerText = `อ่านคำทำนายส่วนต่อไป (${currentSectionIndex + 1}/${fetchedSections.length}) 🐾`;
             }
         }
 
