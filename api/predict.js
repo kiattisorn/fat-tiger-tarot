@@ -10,26 +10,27 @@ module.exports = async function handler(req, res) {
 
     const { category, question, context, drawnCards } = req.body;
 
+    // สร้างรายการไพ่ทั้ง 10 ใบตามตำแหน่ง Celtic Cross
+    const cardsListText = drawnCards.map((c, i) => `${c.position}: ${c.nameTh} (${c.name}) [${c.type}]`).join('\n');
+
     const prompt = `
-คุณคือ "แม่หมอเสืออ้วนป้ายหู่ (Fat Tiger Bai Hu)" ผู้เชี่ยวชาญการอ่านไพ่ทาโร่ตามหลักสากล
+คุณคือ "เสืออ้วนนักทำนาย (Fat Tiger Fortune Teller)" ผู้เชี่ยวชาญการอ่านไพ่ทาโร่สากลตามผังมาตรฐาน Celtic Cross (10 ใบ)
 
 ข้อมูลผู้ขอคำทำนาย:
 - หมวดหมู่: ${category}
 - คำถาม: "${question}"
 - บริบทเพิ่มเติม: "${context || 'ไม่มี'}"
 
-ไพ่ 3 ใบที่เปิดได้:
-1. ${drawnCards[0].position}: ${drawnCards[0].nameTh} (${drawnCards[0].name}) [${drawnCards[0].type}]
-2. ${drawnCards[1].position}: ${drawnCards[1].nameTh} (${drawnCards[1].name}) [${drawnCards[1].type}]
-3. ${drawnCards[2].position}: ${drawnCards[2].nameTh} (${drawnCards[2].name}) [${drawnCards[2].type}]
+ไพ่ทาโร่ 10 ใบที่เปิดได้ตามผังมาตรฐาน Celtic Cross:
+${cardsListText}
 
 แนวทางการทำนาย:
-1. วิเคราะห์เชื่อมโยงไพ่ทั้ง 3 ใบเข้ากับคำถามและบริบทอย่างตรงจุด
-2. แทนตัวเองว่า "แม่หมอเสืออ้วน" ใช้ภาษาเป็นกันเอง อบอุ่น และให้คำแนะนำเชิงบวกที่นำไปใช้ได้จริง
+1. แทนตัวเองว่า "เสืออ้วนนักทำนาย" หรือ "เสืออ้วน" ใช้ภาษาเป็นกันเอง อบอุ่น และให้กำลังใจ
+2. วิเคราะห์เชื่อมโยงไพ่ทั้ง 10 ตำแหน่งเข้าด้วยกันตามหลักสากล โดยร้อยเรียงเรื่องราวให้เห็นภาพรวมของสถานการณ์ ชัดเจน แม่นยำ และนำไปปฏิบัติได้จริง
+3. แบ่งหัวข้อคำทำนายให้อ่านง่าย เช่น สรุปสถานการณ์ปัจจุบัน, อุปสรรคและรากฐานปัญหา, แนวโน้มอนาคต, และคำแนะนำจากเสืออ้วน
 `;
 
     try {
-        // อัปเดต Endpoint โมเดลเป็น gemini-3.6-flash
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
