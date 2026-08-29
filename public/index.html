@@ -38,6 +38,30 @@
 
         <!-- Form Inputs -->
         <div class="space-y-4 bg-amber-950/60 p-5 rounded-2xl border border-amber-600/30">
+            
+            <!-- ช่องใส่ ชื่อ/ชื่อเล่น, เพศ, และ วันเดือนปีเกิด -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-amber-300 uppercase mb-1">ชื่อ / ชื่อเล่น</label>
+                    <input type="text" id="userName" placeholder="เช่น อู๋" 
+                        class="w-full bg-amber-900 border border-amber-600 rounded-xl p-3 text-white focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-amber-300 uppercase mb-1">เพศ</label>
+                    <select id="userGender" class="w-full bg-amber-900 border border-amber-600 rounded-xl p-3 text-white focus:outline-none">
+                        <option value="ไม่ระบุ">ไม่ระบุ</option>
+                        <option value="ชาย">ชาย</option>
+                        <option value="หญิง">หญิง</option>
+                        <option value="LGBTQ+">LGBTQ+</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-amber-300 uppercase mb-1">วันเดือนปีเกิด</label>
+                    <input type="text" id="userDob" placeholder="เช่น 1 ก.ค. 2524 / 01/07/1981" 
+                        class="w-full bg-amber-900 border border-amber-600 rounded-xl p-3 text-white focus:outline-none">
+                </div>
+            </div>
+
             <div>
                 <label class="block text-xs font-semibold text-amber-300 uppercase mb-1">หมวดหมู่เรื่องที่อยากรู้</label>
                 <select id="category" class="w-full bg-amber-900 border border-amber-600 rounded-xl p-3 text-white focus:outline-none">
@@ -55,8 +79,8 @@
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-amber-300 uppercase mb-1">บริบทเพิ่มเติม</label>
-                <textarea id="context" rows="2" placeholder="ระบุรายละเอียดเพิ่มเติมเพื่อความแม่นยำ..." 
+                <label class="block text-xs font-semibold text-amber-300 uppercase mb-1">รายละเอียดเพิ่มเติม (ระบุเพิ่มได้ถ้าต้องการ)</label>
+                <textarea id="context" rows="2" placeholder="เช่น เพิ่งเปลี่ยนสายงานมาได้ 3 เดือน / กำลังลังเลระหว่างสองบริษัท..." 
                     class="w-full bg-amber-900 border border-amber-600 rounded-xl p-3 text-white focus:outline-none"></textarea>
             </div>
 
@@ -157,6 +181,9 @@
         let progressInterval = null;
 
         async function drawCards() {
+            const userName = document.getElementById('userName').value.trim();
+            const userGender = document.getElementById('userGender').value;
+            const userDob = document.getElementById('userDob').value.trim();
             const question = document.getElementById('question').value.trim();
             const category = document.getElementById('category').value;
             const context = document.getElementById('context').value.trim();
@@ -208,7 +235,6 @@
             btn.disabled = true;
             btn.innerText = "🔮 กำลังเปิดไพ่ตามผัง...";
 
-            // พลิกเปิดไพ่ทีละใบ
             for (let i = 0; i < 10; i++) {
                 await new Promise(r => setTimeout(r, 350));
                 flipCard(i);
@@ -216,7 +242,6 @@
 
             statusText.innerText = "เปิดไพ่ครบทั้ง 10 ใบเรียบร้อยแล้ว! 🌟";
 
-            // สั่ง Auto-scroll เลื่อนลงมายังกล่องประมวลผลคำทำนาย
             loadingBox.classList.remove('hidden');
             loadingBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
             startProgressAnimation();
@@ -225,7 +250,7 @@
                 const res = await fetch('/api/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ category, question, context, drawnCards })
+                    body: JSON.stringify({ category, question, userName, userGender, userDob, context, drawnCards })
                 });
 
                 const data = await res.json();
@@ -259,7 +284,7 @@
 
             const messages = [
                 "เสืออ้วนกำลังเปิดตำราอ่านพลังงาน...",
-                "กำลังเชื่อมโยงอดีต ปัจจุบัน และอนาคต...",
+                "กำลังคำนวณวันเกิดและสัญชาตญาณ...",
                 "กำลังกลั่นกรองคำแนะนำสำหรับคุณ...",
                 "ใกล้เสร็จแล้ว เสืออ้วนกำลังเรียบเรียงตัวอักษร..."
             ];
@@ -288,14 +313,12 @@
             const sec = fetchedSections[currentSectionIndex];
             const container = document.getElementById('sectionsContainer');
 
-            // ดึงข้อมูลไพ่ที่สอดคล้องกับ Section ปัจจุบัน
             let sectionCards = [];
             if (currentSectionIndex === 0) sectionCards = drawnCards.slice(0, 3);
             else if (currentSectionIndex === 1) sectionCards = drawnCards.slice(3, 6);
             else if (currentSectionIndex === 2) sectionCards = drawnCards.slice(6, 9);
             else if (currentSectionIndex === 3) sectionCards = drawnCards.slice(9, 10);
 
-            // สร้าง UI แสดงการ์ดไพ่ประจำ Section
             const cardsHtml = `
                 <div class="grid ${sectionCards.length === 1 ? 'grid-cols-1 max-w-xs mx-auto' : 'grid-cols-3'} gap-2.5 my-3">
                     ${sectionCards.map(card => `
@@ -320,10 +343,8 @@
                     <h3 class="font-bold text-amber-300 text-base sm:text-lg">${sec.title}</h3>
                 </div>
                 
-                <!-- ไพ่ประจำ Section -->
                 ${cardsHtml}
 
-                <!-- สรุปสั้นประจำ Section -->
                 <div class="bg-amber-500/15 border border-amber-400/40 rounded-xl p-3.5 text-amber-200 text-xs sm:text-sm font-semibold flex items-start space-x-2">
                     <span class="text-base leading-none">⚡️</span>
                     <div>
@@ -332,7 +353,6 @@
                     </div>
                 </div>
 
-                <!-- รายละเอียดคำทำนาย -->
                 <div class="text-sm sm:text-base text-amber-100/95 whitespace-pre-line pt-1">
                     ${sec.content}
                 </div>
