@@ -9,6 +9,10 @@ module.exports = async function handler(req, res) {
     }
 
     const { category, question, context, drawnCards } = req.body;
+    if (!drawnCards || !Array.isArray(drawnCards)) {
+        return res.status(400).json({ error: 'ข้อมูลไพ่ไม่ถูกต้อง หรือส่งมาไม่ครบถ้วน' });
+    }
+
     const cardsListText = drawnCards.map((c) => `${c.position}: ${c.nameTh} (${c.name}) [${c.type}]`).join('\n');
 
     const prompt = `
@@ -22,13 +26,13 @@ module.exports = async function handler(req, res) {
 ไพ่ 10 ใบที่เปิดได้:
 ${cardsListText}
 
-ตอบกลับเป็นโครงสร้าง JSON เท่านั้น โดยแบ่งคำทำนายออกเป็น 4 ส่วน (Sections) ดังนี้:
+ตอบกลับเป็นโครงสร้าง JSON เท่านั้น โดยแบ่งคำทำนายออกเป็น 4 ส่วนดังนี้:
 1. "ภาพรวมสถานการณ์และอุปสรรคปัจจุบัน (ตำแหน่ง 1, 2, 3)"
 2. "เบื้องหลัง อดีต และเป้าหมายในใจ (ตำแหน่ง 4, 5, 6)"
 3. "อิทธิพลภายนอก ทัศนคติ และความหวังความกลัว (ตำแหน่ง 7, 8, 9)"
 4. "บทสรุปและแนวทางปฏิบัติจากเสืออ้วน (ตำแหน่ง 10)"
 
-ข้อกำหนดโครงสร้าง JSON:
+โครงสร้าง JSON:
 {
   "sections": [
     {
@@ -41,7 +45,7 @@ ${cardsListText}
 `;
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -59,7 +63,12 @@ ${cardsListText}
         }
 
         if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-            const parsedData = JSON.parse(data.candidates[0].content.parts[0].text);
+            let rawText = data.candidates[0].content.parts[0].text;
+            
+            // ป้องกัน SyntaxError: ตัด Markdown block (```json) ออกก่อนแปลงเป็น JSON
+            rawText = rawText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+            
+            const parsedData = JSON.parse(rawText);
             return res.status(200).json(parsedData);
         } else {
             return res.status(500).json({ error: 'ไม่พบเนื้อหาคำทำนายตอบกลับจากระบบ AI' });
