@@ -5,7 +5,7 @@ module.exports = async function handler(req, res) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-        return res.status(500).json({ error: 'ไม่พบ GEMINI_API_KEY ในระบบ' });
+        return res.status(500).json({ error: 'ไม่พบ GEMINI_API_KEY ในระบบ Vercel Environment Variables' });
     }
 
     const { category, question, context, drawnCards } = req.body;
@@ -29,8 +29,8 @@ module.exports = async function handler(req, res) {
 `;
 
     try {
-        // อัปเดตใช้โมเดล gemini-2.5-flash
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        // อัปเดต Endpoint โมเดลเป็น gemini-3.6-flash
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
