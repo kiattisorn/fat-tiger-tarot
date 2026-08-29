@@ -70,4 +70,13 @@ ${cardsListText}
 
         if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
             let rawText = data.candidates[0].content.parts[0].text;
-            rawText = rawText.replace(/```json/gi, '').replace(/
+            rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const parsedData = JSON.parse(rawText);
+            return res.status(200).json(parsedData);
+        } else {
+            return res.status(500).json({ error: 'ไม่พบเนื้อหาคำทำนายตอบกลับจากระบบ AI' });
+        }
+    } catch (error) {
+        return res.status(500).json({ error: `Server Error: ${error.message}` });
+    }
+};
