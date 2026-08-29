@@ -20,7 +20,6 @@
         }
         .card-back { transform: rotateY(180deg); }
         
-        /* สไตล์ไอคอนปฏิทินในธีมมืด */
         input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(0.8) sepia(100%) saturate(500%) hue-rotate(350deg);
             cursor: pointer;
@@ -35,18 +34,15 @@
 </head>
 <body class="bg-amber-950 text-amber-50 min-h-screen flex flex-col items-center p-3 sm:p-6 relative">
 
-    <!-- Focus Card Overlay (สำหรับแสดงอนิเมชันไพ่กลางหน้าจอ) -->
+    <!-- Focus Card Overlay -->
     <div id="focusCardOverlay" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center transition-colors duration-500">
         <div class="perspective w-64 sm:w-80 aspect-[2/3]">
             <div id="focusCardInner" class="card-inner relative w-full h-full rounded-2xl shadow-2xl">
-                <!-- หลังไพ่ (ตอนลอยขึ้นมา) -->
                 <div class="card-front absolute inset-0 bg-amber-800 border-4 border-amber-400 rounded-2xl flex flex-col items-center justify-center p-3 text-center overflow-hidden">
                     <img src="images/card-back.jpg" class="absolute inset-0 w-full h-full object-cover opacity-60">
                     <div class="relative z-10 text-5xl sm:text-6xl animate-pulse">🐯</div>
                 </div>
-                <!-- หน้าไพ่ (ตอนพลิกโชว์) -->
                 <div id="focusCardBack" class="card-back absolute inset-0 bg-amber-900 border-4 border-amber-300 rounded-2xl flex flex-col justify-between p-4 overflow-hidden shadow-[0_0_30px_rgba(251,191,36,0.4)]">
-                    <!-- จะถูกแทนที่ด้วยข้อมูลไพ่ผ่าน JS -->
                 </div>
             </div>
         </div>
@@ -54,7 +50,6 @@
 
     <div class="max-w-4xl w-full bg-amber-900/80 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 shadow-2xl my-auto space-y-6">
         
-        <!-- Header -->
         <div class="text-center space-y-2">
             <div class="inline-block bg-amber-500 text-amber-950 px-4 py-1 rounded-full font-bold text-xs shadow-md">
                 🐯 FAT TIGER STANDARD 10-CARD TAROT
@@ -67,7 +62,6 @@
 
         <!-- Form Inputs -->
         <div class="space-y-4 bg-amber-950/60 p-5 rounded-2xl border border-amber-600/30">
-            
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                     <label class="block text-xs font-semibold text-amber-300 uppercase mb-1">ชื่อ / ชื่อเล่น</label>
@@ -114,16 +108,15 @@
 
             <button onclick="drawCards()" id="submitBtn" 
                 class="w-full bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-amber-950 font-bold text-lg py-3.5 rounded-xl shadow-lg transition transform active:scale-95">
-                🐾 สับไพ่และเริ่มเปิดไพ่ 10 ใบ
+                🐾 ตั้งจิตสับไพ่และเริ่มเปิดดวง
             </button>
         </div>
 
         <!-- Cards Layout Zone (ผังไพ่) -->
         <div id="cardsSection" class="hidden space-y-4">
             <h3 id="statusText" class="text-center font-bold text-amber-300 text-base">
-                เสืออ้วนกำลังเปิดไพ่ทีละใบ... 🐯
+                เสืออ้วนเตรียมไพ่พร้อมแล้ว กดปุ่มเพื่อเปิดไพ่ทีละใบ 🐯
             </h3>
-            <!-- เปลี่ยนการกั้นช่องให้พอดีกับสัดส่วน 2:3 -->
             <div id="cardsDisplay" class="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4"></div>
         </div>
 
@@ -152,7 +145,6 @@
                     อ่านคำทำนายส่วนต่อไป 🐾
                 </button>
 
-                <!-- โซนปุ่มแชร์ผลการทำนาย -->
                 <div id="shareBox" class="hidden bg-amber-950/80 border border-amber-500/30 rounded-2xl p-4 text-center space-y-3 shadow-lg">
                     <div class="text-xs font-semibold text-amber-300 uppercase tracking-wide">✨ แชร์ผลคำทำนายให้เพื่อน</div>
                     <div class="flex flex-wrap justify-center gap-2">
@@ -185,7 +177,6 @@
             "9: ความหวัง/ความกลัว", "10: บทสรุปสุดท้าย"
         ];
 
-        // เก็บ nameTh ไว้ส่งให้ AI ทำนายหลังบ้าน แต่หน้าบ้านโชว์ชื่ออังกฤษสากล (name)
         const tarotDeck = [
             { name: "The Fool", nameTh: "0. ไพ่เจ้าตัวยุ่งผู้เริ่มต้น", type: "Major Arcana", img: "images/cards/0_fool.jpg" },
             { name: "The Magician", nameTh: "I. ไพ่เสือวิเศษผู้มีพรสวรรค์", type: "Major Arcana", img: "images/cards/1_magician.jpg" },
@@ -227,12 +218,10 @@
         let fetchedSections = [];
         let currentSectionIndex = 0;
         let progressInterval = null;
+        let currentCardIndex = 0; // ลำดับไพ่ปัจจุบันที่กำลังเปิด
 
         async function drawCards() {
-            const userName = document.getElementById('userName').value.trim();
             const question = document.getElementById('question').value.trim();
-            const category = document.getElementById('category').value;
-
             if (!question) {
                 alert("กรุณาพิมพ์คำถามให้เสืออ้วนนักทำนายทราบก่อนครับ 🐯");
                 return;
@@ -244,29 +233,27 @@
             const loadingBox = document.getElementById('loadingBox');
             const resultBox = document.getElementById('resultBox');
             const statusText = document.getElementById('statusText');
+            const shareBox = document.getElementById('shareBox');
 
             document.getElementById('nextBtn').innerText = "อ่านคำทำนายส่วนต่อไป 🐾";
+            currentCardIndex = 0;
 
-            // สุ่มไพ่
             const shuffled = [...tarotDeck].sort(() => 0.5 - Math.random());
             drawnCards = celticCrossPositions.map((pos, idx) => ({ position: pos, ...shuffled[idx] }));
 
             cardsSection.classList.remove('hidden');
             resultBox.classList.add('hidden');
             loadingBox.classList.add('hidden');
-            document.getElementById('shareBox').classList.add('hidden');
-            statusText.innerText = "ตั้งสมาธิ... เสืออ้วนกำลังเปิดไพ่ทีละใบ 🐯";
+            shareBox.classList.add('hidden');
+            statusText.innerText = "ไพ่พร้อมแล้ว กดปุ่มด้านบนเพื่อสุ่มเปิดไพ่ทีละใบ 🐯";
 
-            // เลื่อนลงไปที่โซนแสดงไพ่
             cardsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-            // สร้าง Grid ไพ่เปล่า (ซ่อนไว้ก่อนด้วย opacity-0)
             cardsDisplay.innerHTML = drawnCards.map((card, idx) => `
                 <div class="perspective">
                     <div id="grid-card-${idx}" class="card-inner relative w-full aspect-[2/3] rounded-xl shadow-lg opacity-0 transition-opacity duration-500">
                         <div class="card-back absolute inset-0 bg-amber-900 border-2 border-amber-300 rounded-xl flex flex-col justify-between p-1.5 sm:p-2 overflow-hidden card-flipped">
                             <div class="text-[9px] sm:text-[10px] text-amber-300 font-bold text-center leading-tight mb-1 truncate">${card.position.split(':')[0]}</div>
-                            <!-- ใช้ object-contain เพื่อแสดงภาพเต็มใบ -->
                             <div class="flex-1 w-full rounded-md overflow-hidden bg-black flex items-center justify-center p-0.5">
                                 <img src="${card.img}" class="w-full h-full object-contain" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'text-2xl\\'>🐯</div>';">
                             </div>
@@ -278,17 +265,107 @@
                 </div>
             `).join('');
 
+            // ปรับปุ่มสำหรับให้ผู้ใช้กดเปิดไพ่ทีละใบ
+            btn.innerText = "🐾 เปิดไพ่ใบที่ 1";
+            btn.onclick = drawNextCard;
+        }
+
+        // ฟังก์ชันเมื่อผู้ใช้กดปุ่มเปิดไพ่
+        async function drawNextCard() {
+            const btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.innerText = "🔮 กำลังเปิดไพ่ตามผัง...";
 
-            // ลูปเล่นอนิเมชันเปิดไพ่ตรงกลางทีละใบ แล้วบินลงไปที่ Grid
-            for (let i = 0; i < 10; i++) {
-                await presentCardInCenter(drawnCards[i], i);
+            await presentCardInCenter(drawnCards[currentCardIndex], currentCardIndex);
+            
+            currentCardIndex++;
+
+            if (currentCardIndex < 10) {
+                btn.innerText = `🐾 เปิดไพ่ใบที่ ${currentCardIndex + 1}`;
+                btn.disabled = false;
+            } else {
+                document.getElementById('statusText').innerText = "เปิดไพ่ครบทั้ง 10 ใบเรียบร้อยแล้ว! 🌟";
+                btn.innerText = "🔮 กำลังประมวลผลคำทำนาย...";
+                await fetchPrediction();
             }
+        }
 
-            statusText.innerText = "เปิดไพ่ครบทั้ง 10 ใบเรียบร้อยแล้ว! 🌟";
+        // แจกไพ่โชว์กลางหน้าจอ
+        function presentCardInCenter(card, index) {
+            return new Promise(resolve => {
+                const overlay = document.getElementById('focusCardOverlay');
+                const focusInner = document.getElementById('focusCardInner');
+                const focusBack = document.getElementById('focusCardBack');
+                const targetGridCard = document.getElementById(`grid-card-${index}`);
 
-            // เริ่มคำนวณและ Auto-Scroll ไปที่แถบ Progress
+                focusBack.innerHTML = `
+                    <div class="text-sm sm:text-base text-amber-300 font-bold text-center leading-tight mb-2 tracking-wide">${card.position}</div>
+                    <div class="flex-1 w-full rounded-xl overflow-hidden bg-black flex items-center justify-center p-1 border border-amber-500/50">
+                        <img src="${card.img}" class="w-full h-full object-contain" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'text-6xl\\'>🐯</div>';">
+                    </div>
+                    <div class="text-center mt-3">
+                        <div class="text-lg sm:text-xl font-bold text-amber-200 tracking-wider">${card.name}</div>
+                        <div class="text-xs text-amber-400/80 mt-1 uppercase tracking-widest">${card.type}</div>
+                    </div>
+                `;
+
+                overlay.classList.remove('hidden');
+                overlay.style.backgroundColor = 'rgba(0,0,0,0.8)';
+                focusInner.style.transition = 'none';
+                focusInner.style.transform = 'scale(0.8) translateY(100px)';
+                focusInner.style.opacity = '1';
+                focusInner.classList.remove('card-flipped');
+
+                requestAnimationFrame(() => {
+                    focusInner.style.transition = 'transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    focusInner.style.transform = 'scale(1) translateY(0)';
+                });
+
+                setTimeout(() => {
+                    focusInner.classList.add('card-flipped');
+                    focusInner.style.transform = 'scale(1.1) rotateY(180deg)';
+                }, 500);
+
+                setTimeout(() => {
+                    const focusRect = focusInner.getBoundingClientRect();
+                    const targetRect = targetGridCard.getBoundingClientRect();
+
+                    const focusCenterX = focusRect.left + focusRect.width / 2;
+                    const focusCenterY = focusRect.top + focusRect.height / 2;
+                    const targetCenterX = targetRect.left + targetRect.width / 2;
+                    const targetCenterY = targetRect.top + targetRect.height / 2;
+
+                    const deltaX = targetCenterX - focusCenterX;
+                    const deltaY = targetCenterY - focusCenterY;
+                    const scale = targetRect.width / focusRect.width;
+
+                    focusInner.style.transition = 'all 0.6s ease-in-out';
+                    focusInner.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${scale}) rotateY(180deg)`;
+                    focusInner.style.opacity = '0';
+                    overlay.style.backgroundColor = 'rgba(0,0,0,0)'; 
+
+                    setTimeout(() => {
+                        overlay.classList.add('hidden');
+                        targetGridCard.classList.remove('opacity-0');
+                        targetGridCard.classList.add('card-flipped'); 
+                        resolve();
+                    }, 600);
+
+                }, 2200); 
+            });
+        }
+
+        // ดึงข้อมูลคำทำนายจาก API หลังเปิดไพ่ครบ
+        async function fetchPrediction() {
+            const userName = document.getElementById('userName').value.trim();
+            const userGender = document.getElementById('userGender').value;
+            const userDob = document.getElementById('userDob').value;
+            const question = document.getElementById('question').value.trim();
+            const category = document.getElementById('category').value;
+            const context = document.getElementById('context').value.trim();
+            const btn = document.getElementById('submitBtn');
+            const loadingBox = document.getElementById('loadingBox');
+            const resultBox = document.getElementById('resultBox');
+
             loadingBox.classList.remove('hidden');
             loadingBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
             startProgressAnimation();
@@ -297,13 +374,7 @@
                 const res = await fetch('/api/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        category, question, userName, 
-                        userGender: document.getElementById('userGender').value, 
-                        userDob: document.getElementById('userDob').value, 
-                        context: document.getElementById('context').value, 
-                        drawnCards 
-                    })
+                    body: JSON.stringify({ category, question, userName, userGender, userDob, context, drawnCards })
                 });
 
                 const data = await res.json();
@@ -323,79 +394,11 @@
                 stopProgressAnimation();
                 alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบคำทำนาย");
             } finally {
+                // รีเซ็ตปุ่มกลับเป็นสถานะเริ่มต้นเพื่อให้ผู้ใช้สับไพ่รอบใหม่ได้
                 btn.disabled = false;
-                btn.innerText = "🐾 สับไพ่และเริ่มเปิดไพ่ 10 ใบ";
+                btn.innerText = "🐾 เริ่มเปิดดวงชะตาใหม่";
+                btn.onclick = drawCards;
             }
-        }
-
-        // ฟังก์ชันแจกไพ่โชว์กลางหน้าจอ
-        function presentCardInCenter(card, index) {
-            return new Promise(resolve => {
-                const overlay = document.getElementById('focusCardOverlay');
-                const focusInner = document.getElementById('focusCardInner');
-                const focusBack = document.getElementById('focusCardBack');
-                const targetGridCard = document.getElementById(`grid-card-${index}`);
-
-                // 1. ตั้งค่าข้อมูลหน้าไพ่ (โชว์ภาพเต็มใบ object-contain และชื่อสากล)
-                focusBack.innerHTML = `
-                    <div class="text-sm sm:text-base text-amber-300 font-bold text-center leading-tight mb-2 tracking-wide">${card.position}</div>
-                    <div class="flex-1 w-full rounded-xl overflow-hidden bg-black flex items-center justify-center p-1 border border-amber-500/50">
-                        <img src="${card.img}" class="w-full h-full object-contain" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'text-6xl\\'>🐯</div>';">
-                    </div>
-                    <div class="text-center mt-3">
-                        <div class="text-lg sm:text-xl font-bold text-amber-200 tracking-wider">${card.name}</div>
-                        <div class="text-xs text-amber-400/80 mt-1 uppercase tracking-widest">${card.type}</div>
-                    </div>
-                `;
-
-                // 2. รีเซ็ตสถานะและเด้งขึ้นมากลางจอ
-                overlay.classList.remove('hidden');
-                overlay.style.backgroundColor = 'rgba(0,0,0,0.8)';
-                focusInner.style.transition = 'none';
-                focusInner.style.transform = 'scale(0.8) translateY(100px)';
-                focusInner.style.opacity = '1';
-                focusInner.classList.remove('card-flipped');
-
-                requestAnimationFrame(() => {
-                    focusInner.style.transition = 'transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                    focusInner.style.transform = 'scale(1) translateY(0)';
-                });
-
-                // 3. พลิกไพ่โชว์หน้าไพ่
-                setTimeout(() => {
-                    focusInner.classList.add('card-flipped');
-                    focusInner.style.transform = 'scale(1.1) rotateY(180deg)';
-                }, 500);
-
-                // 4. รอให้อ่านสักครู่ แล้วบินลงไปที่ Grid
-                setTimeout(() => {
-                    const focusRect = focusInner.getBoundingClientRect();
-                    const targetRect = targetGridCard.getBoundingClientRect();
-
-                    const focusCenterX = focusRect.left + focusRect.width / 2;
-                    const focusCenterY = focusRect.top + focusRect.height / 2;
-                    const targetCenterX = targetRect.left + targetRect.width / 2;
-                    const targetCenterY = targetRect.top + targetRect.height / 2;
-
-                    const deltaX = targetCenterX - focusCenterX;
-                    const deltaY = targetCenterY - focusCenterY;
-                    const scale = targetRect.width / focusRect.width;
-
-                    focusInner.style.transition = 'all 0.6s ease-in-out';
-                    focusInner.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${scale}) rotateY(180deg)`;
-                    focusInner.style.opacity = '0';
-                    overlay.style.backgroundColor = 'rgba(0,0,0,0)'; // เฟดพื้นหลังออก
-
-                    // 5. โชว์ไพ่บน Grid และจบรอบ
-                    setTimeout(() => {
-                        overlay.classList.add('hidden');
-                        targetGridCard.classList.remove('opacity-0');
-                        targetGridCard.classList.add('card-flipped'); // ยืนยันว่าหน้าไพ่หงาย
-                        resolve();
-                    }, 600);
-
-                }, 2200); // ระยะเวลาแสดงผลให้อ่านหน้าไพ่
-            });
         }
 
         function startProgressAnimation() {
@@ -450,7 +453,6 @@
             else if (currentSectionIndex === 2) sectionCards = drawnCards.slice(6, 9);
             else if (currentSectionIndex === 3) sectionCards = drawnCards.slice(9, 10);
 
-            // โชว์ภาพไพ่ประกอบคำทำนายแบบเต็มใบ (object-contain)
             const cardsHtml = `
                 <div class="grid ${sectionCards.length === 1 ? 'grid-cols-1 max-w-[140px] mx-auto' : 'grid-cols-3'} gap-2.5 my-4">
                     ${sectionCards.map(card => `
@@ -508,7 +510,6 @@
             }
         }
 
-        // ระบบแชร์ผลคำทำนาย
         function shareResult(platform) {
             const userName = document.getElementById('userName').value.trim() || 'คุณ';
             const question = document.getElementById('question').value.trim();
