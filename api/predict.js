@@ -8,7 +8,7 @@ module.exports = async function handler(req, res) {
         return res.status(500).json({ error: 'ไม่พบ GEMINI_API_KEY ในระบบ Vercel Environment Variables กรุณาตรวจสอบการตั้งค่าหลังบ้าน' });
     }
 
-    const { category, question, context, drawnCards } = req.body;
+    const { category, question, userName, userGender, userDob, context, drawnCards } = req.body;
     if (!drawnCards || !Array.isArray(drawnCards)) {
         return res.status(400).json({ error: 'ข้อมูลไพ่ไม่ถูกต้อง หรือส่งมาไม่ครบถ้วน' });
     }
@@ -18,19 +18,25 @@ module.exports = async function handler(req, res) {
     const prompt = `
 คุณคือ "เสืออ้วนนักทำนาย (Fat Tiger Fortune Teller)" ผู้เชี่ยวชาญการอ่านไพ่ทาโร่สากล 10 ใบ (Celtic Cross)
 
-ข้อมูลผู้ขอคำทำนาย:
-- หมวดหมู่: ${category}
+ข้อมูลเจ้าของดวงชะตา:
+- ชื่อ / ชื่อเล่น: ${userName || 'ไม่ระบุ'}
+- เพศ: ${userGender || 'ไม่ระบุ'}
+- วันเดือนปีเกิด: ${userDob || 'ไม่ระบุ'}
+- หมวดหมู่เรื่องที่ถาม: ${category}
 - คำถาม: "${question}"
 - บริบทเพิ่มเติม: "${context || 'ไม่มี'}"
 
 ไพ่ 10 ใบที่เปิดได้:
 ${cardsListText}
 
-ตอบกลับเป็นโครงสร้าง JSON เท่านั้น โดยแบ่งคำทำนายออกเป็น 4 ส่วนดังนี้:
-1. "ภาพรวมสถานการณ์และอุปสรรคปัจจุบัน (ตำแหน่ง 1, 2, 3)"
-2. "เบื้องหลัง อดีต และเป้าหมายในใจ (ตำแหน่ง 4, 5, 6)"
-3. "อิทธิพลภายนอก ทัศนคติ และความหวังความกลัว (ตำแหน่ง 7, 8, 9)"
-4. "บทสรุปและแนวทางปฏิบัติจากเสืออ้วน (ตำแหน่ง 10)"
+แนวทางการทำนาย:
+1. เรียกชื่อผู้ขอคำทำนาย (${userName || 'คุณ'}) ในคำทำนาย และปรับโทนภาษา/สรรพนามให้สอดคล้องกับเพศและช่วงอายุจากวันเดือนปีเกิดที่ระบุ
+2. เชื่อมโยงความหมายของไพ่ 10 ใบกับข้อมูลส่วนบุคคลและคำถาม ให้ได้คำแนะนำที่ลึกซึ้งและนำไปใช้ได้จริง
+3. ตอบกลับเป็นโครงสร้าง JSON เท่านั้น โดยแบ่งคำทำนายออกเป็น 4 ส่วนดังนี้:
+   - ส่วนที่ 1: "ภาพรวมสถานการณ์และอุปสรรคปัจจุบัน (ตำแหน่ง 1, 2, 3)"
+   - ส่วนที่ 2: "เบื้องหลัง อดีต และเป้าหมายในใจ (ตำแหน่ง 4, 5, 6)"
+   - ส่วนที่ 3: "อิทธิพลภายนอก ทัศนคติ และความหวังความกลัว (ตำแหน่ง 7, 8, 9)"
+   - ส่วนที่ 4: "บทสรุปและแนวทางปฏิบัติจากเสืออ้วน (ตำแหน่ง 10)"
 
 โครงสร้าง JSON:
 {
@@ -45,7 +51,6 @@ ${cardsListText}
 `;
 
     try {
-        // อัปเดต Endpoint เป็น gemini-3.6-flash ตามที่ระบบแจ้งเตือน
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -65,13 +70,4 @@ ${cardsListText}
 
         if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
             let rawText = data.candidates[0].content.parts[0].text;
-            rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-            const parsedData = JSON.parse(rawText);
-            return res.status(200).json(parsedData);
-        } else {
-            return res.status(500).json({ error: 'ไม่พบเนื้อหาคำทำนายตอบกลับจากระบบ AI' });
-        }
-    } catch (error) {
-        return res.status(500).json({ error: `Server Error: ${error.message}` });
-    }
-};
+            rawText = rawText.replace(/```json/gi, '').replace(/
