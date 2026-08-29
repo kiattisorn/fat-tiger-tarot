@@ -9,32 +9,47 @@ module.exports = async function handler(req, res) {
     }
 
     const { category, question, context, drawnCards } = req.body;
-
-    // สร้างรายการไพ่ทั้ง 10 ใบตามตำแหน่ง Celtic Cross
-    const cardsListText = drawnCards.map((c, i) => `${c.position}: ${c.nameTh} (${c.name}) [${c.type}]`).join('\n');
+    const cardsListText = drawnCards.map((c) => `${c.position}: ${c.nameTh} (${c.name}) [${c.type}]`).join('\n');
 
     const prompt = `
-คุณคือ "เสืออ้วนนักทำนาย (Fat Tiger Fortune Teller)" ผู้เชี่ยวชาญการอ่านไพ่ทาโร่สากลตามผังมาตรฐาน Celtic Cross (10 ใบ)
+คุณคือ "เสืออ้วนนักทำนาย (Fat Tiger Fortune Teller)" ผู้เชี่ยวชาญการอ่านไพ่ทาโร่สากล 10 ใบ (Celtic Cross)
 
 ข้อมูลผู้ขอคำทำนาย:
 - หมวดหมู่: ${category}
 - คำถาม: "${question}"
 - บริบทเพิ่มเติม: "${context || 'ไม่มี'}"
 
-ไพ่ทาโร่ 10 ใบที่เปิดได้ตามผังมาตรฐาน Celtic Cross:
+ไพ่ 10 ใบที่เปิดได้:
 ${cardsListText}
 
-แนวทางการทำนาย:
-1. แทนตัวเองว่า "เสืออ้วนนักทำนาย" หรือ "เสืออ้วน" ใช้ภาษาเป็นกันเอง อบอุ่น และให้กำลังใจ
-2. วิเคราะห์เชื่อมโยงไพ่ทั้ง 10 ตำแหน่งเข้าด้วยกันตามหลักสากล โดยร้อยเรียงเรื่องราวให้เห็นภาพรวมของสถานการณ์ ชัดเจน แม่นยำ และนำไปปฏิบัติได้จริง
-3. แบ่งหัวข้อคำทำนายให้อ่านง่าย เช่น สรุปสถานการณ์ปัจจุบัน, อุปสรรคและรากฐานปัญหา, แนวโน้มอนาคต, และคำแนะนำจากเสืออ้วน
+ตอบกลับเป็นโครงสร้าง JSON เท่านั้น โดยแบ่งคำทำนายออกเป็น 4 ส่วน (Sections) ดังนี้:
+1. "ภาพรวมสถานการณ์และอุปสรรคปัจจุบัน (ตำแหน่ง 1, 2, 3)"
+2. "เบื้องหลัง อดีต และเป้าหมายในใจ (ตำแหน่ง 4, 5, 6)"
+3. "อิทธิพลภายนอก ทัศนคติ และความหวังความกลัว (ตำแหน่ง 7, 8, 9)"
+4. "บทสรุปและแนวทางปฏิบัติจากเสืออ้วน (ตำแหน่ง 10)"
+
+ข้อกำหนดโครงสร้าง JSON:
+{
+  "sections": [
+    {
+      "title": "ชื่อหัวข้อส่วนที่ 1",
+      "summary": "สรุปสั้นเข้าใจง่าย 1-2 ประโยคสำหรับส่วนนี้",
+      "content": "เนื้อหาคำทำนายรายละเอียดแบบฉบับเสืออ้วน..."
+    }
+  ]
+}
 `;
 
     try {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    response_mime_type: "application/json"
+                }
+            })
         });
 
         const data = await response.json();
@@ -44,7 +59,8 @@ ${cardsListText}
         }
 
         if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-            return res.status(200).json({ result: data.candidates[0].content.parts[0].text });
+            const parsedData = JSON.parse(data.candidates[0].content.parts[0].text);
+            return res.status(200).json(parsedData);
         } else {
             return res.status(500).json({ error: 'ไม่พบเนื้อหาคำทำนายตอบกลับจากระบบ AI' });
         }
