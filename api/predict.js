@@ -45,8 +45,8 @@ ${cardsListText}
 `;
 
     try {
-        // ใช้ Endpoint โมเดลมาตรฐาน gemini-2.0-flash
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+        // อัปเดต Endpoint เป็น gemini-3.6-flash ตามที่ระบบแจ้งเตือน
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
