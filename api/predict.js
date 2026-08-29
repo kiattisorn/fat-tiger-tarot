@@ -4,8 +4,11 @@ module.exports = async function handler(req, res) {
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+
     if (!apiKey) {
-        return res.status(500).json({ error: 'ไม่พบ GEMINI_API_KEY ในระบบ Vercel Environment Variables กรุณาตรวจสอบการตั้งค่าหลังบ้าน' });
+        return res.status(500).json({ error: 'ไม่พบ GEMINI_API_KEY ในระบบ Vercel Environment Variables' });
     }
 
     const { category, question, userName, userGender, userDob, context, drawnCards } = req.body;
@@ -51,7 +54,6 @@ ${cardsListText}
 `;
 
     try {
-        // อัปเดตไปใช้โมเดล gemini-3.5-flash-lite
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -73,6 +75,34 @@ ${cardsListText}
             let rawText = data.candidates[0].content.parts[0].text;
             rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
             const parsedData = JSON.parse(rawText);
+
+            // บันทึกข้อมูลลง Supabase (หากตั้งค่า URL และ Key ครบถ้วน)
+            if (supabaseUrl && supabaseAnonKey) {
+                try {
+                    await fetch(`${supabaseUrl}/rest/v1/predictions`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': supabaseAnonKey,
+                            'Authorization': `Bearer ${supabaseAnonKey}`,
+                            'Prefer': 'return=minimal'
+                        },
+                        body: JSON.stringify({
+                            user_name: userName || 'ไม่ระบุ',
+                            user_gender: userGender || 'ไม่ระบุ',
+                            user_dob: userDob || 'ไม่ระบุ',
+                            category: category,
+                            question: question,
+                            cards: drawnCards,
+                            ai_result: parsedData
+                        })
+                    });
+                } catch (dbError) {
+                    console.error('Supabase Save Error:', dbError.message);
+                    // ไม่บล็อกการส่งผลลัพธ์ให้ผู้ใช้ แม้การบันทึกเบื้องหลังจะขัดข้องก็ตาม
+                }
+            }
+
             return res.status(200).json(parsedData);
         } else {
             return res.status(500).json({ error: 'ไม่พบเนื้อหาคำทำนายตอบกลับจากระบบ AI' });
