@@ -1,13 +1,11 @@
 module.exports = async function handler(req, res) {
-    // กำหนดการรับเฉพาะ HTTP POST
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    // ตรวจสอบ API Key ใน Environment Variables
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-        return res.status(500).json({ error: 'ไม่พบ GEMINI_API_KEY ในการตั้งค่า Environment Variables ของ Vercel' });
+        return res.status(500).json({ error: 'ไม่พบ GEMINI_API_KEY ในระบบ' });
     }
 
     const { category, question, context, drawnCards } = req.body;
@@ -20,7 +18,7 @@ module.exports = async function handler(req, res) {
 - คำถาม: "${question}"
 - บริบทเพิ่มเติม: "${context || 'ไม่มี'}"
 
-ไพ่ 3 ใบที่เปิดได้ (Past - Present - Future):
+ไพ่ 3 ใบที่เปิดได้:
 1. ${drawnCards[0].position}: ${drawnCards[0].nameTh} (${drawnCards[0].name}) [${drawnCards[0].type}]
 2. ${drawnCards[1].position}: ${drawnCards[1].nameTh} (${drawnCards[1].name}) [${drawnCards[1].type}]
 3. ${drawnCards[2].position}: ${drawnCards[2].nameTh} (${drawnCards[2].name}) [${drawnCards[2].type}]
@@ -31,7 +29,8 @@ module.exports = async function handler(req, res) {
 `;
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        // อัปเดตใช้โมเดล gemini-2.5-flash
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
@@ -39,7 +38,6 @@ module.exports = async function handler(req, res) {
 
         const data = await response.json();
 
-        // กรณี Gemini API ส่งข้อผิดพลาดกลับมา ให้แสดงข้อความแจ้งเตือนฉบับเต็ม
         if (data.error) {
             return res.status(500).json({ error: `Gemini API Error: ${data.error.message || JSON.stringify(data.error)}` });
         }
