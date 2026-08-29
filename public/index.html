@@ -3,40 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔮 แม่หมอเสืออ้วนป้ายหู่ - ไพ่ทาโร่สากล 78 ใบ</title>
+    <title>🔮 เสืออ้วนนักทำนาย - ดูดวงไพ่ทาโร่สากล 10 ใบ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Prompt', sans-serif; }
         .perspective { perspective: 1000px; }
-        .card-inner { transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; }
+        .card-inner { transition: transform 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; }
         .card-flipped { transform: rotateY(180deg); }
         .card-front, .card-back { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
         .card-back { transform: rotateY(180deg); }
     </style>
 </head>
-<body class="bg-amber-950 text-amber-50 min-h-screen flex flex-col items-center p-4">
+<body class="bg-amber-950 text-amber-50 min-h-screen flex flex-col items-center p-3 sm:p-6">
 
-    <div class="max-w-3xl w-full bg-amber-900/80 border-2 border-amber-500/40 rounded-3xl p-6 shadow-2xl my-auto space-y-6">
+    <div class="max-w-5xl w-full bg-amber-900/80 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 shadow-2xl my-auto space-y-6">
         
+        <!-- Header -->
         <div class="text-center space-y-2">
             <div class="inline-block bg-amber-500 text-amber-950 px-4 py-1 rounded-full font-bold text-xs shadow-md">
-                🐯 FAT TIGER 78 UNIVERSAL TAROT
+                🐯 FAT TIGER STANDARD 10-CARD TAROT
             </div>
             <h1 class="text-3xl sm:text-4xl font-extrabold text-amber-300 drop-shadow-md">
-                🐯 แม่หมอเสืออ้วนพาทักดวง
+                🐯 เสืออ้วนนักทำนายพาทักดวง
             </h1>
-            <p class="text-amber-200/80 text-sm">ถอดรหัสชะตาด้วยสำรับมาตรฐานสากล 78 ใบ</p>
+            <p class="text-amber-200/80 text-sm">ถอดรหัสชะตาด้วยผังไพ่มาตรฐานสากล Celtic Cross (10 ใบ)</p>
         </div>
 
+        <!-- Form Inputs -->
         <div class="space-y-4 bg-amber-950/60 p-5 rounded-2xl border border-amber-600/30">
             <div>
                 <label class="block text-xs font-semibold text-amber-300 uppercase mb-1">หมวดหมู่เรื่องที่อยากรู้</label>
                 <select id="category" class="w-full bg-amber-900 border border-amber-600 rounded-xl p-3 text-white focus:outline-none">
-                    <option value="ดวงทั่วไป">🌟 ดวงทั่วไป / ทิศทางชีวิต</option>
+                    <option value="ดวงทั่วไป">🌟 ดวงทั่วไป / ทิศทางชีวิตภาพรวม</option>
                     <option value="ความรัก">💖 ความรัก / ความสัมพันธ์</option>
-                    <option value="การงานและการเรียน">💼 การงาน / การเรียน</option>
-                    <option value="การเงินและโชคลาภ">💰 การเงิน / โชคลาภ</option>
+                    <option value="การงานและการเรียน">💼 การงาน / การเรียน / ธุรกิจ</option>
+                    <option value="การเงินและโชคลาภ">💰 การเงิน / โชคลาภ / การลงทุน</option>
                 </select>
             </div>
 
@@ -54,22 +56,26 @@
 
             <button onclick="drawCards()" id="submitBtn" 
                 class="w-full bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-amber-950 font-bold text-lg py-3.5 rounded-xl shadow-lg transition transform active:scale-95">
-                🐾 สับไพ่และสุ่มเปิด 3 ใบ
+                🐾 สับไพ่และเริ่มเปิดไพ่ 10 ใบ
             </button>
         </div>
 
-        <div id="cardsSection" class="hidden space-y-3">
-            <h3 class="text-center font-bold text-amber-300 text-base">การจัดวางไพ่แบบสากล 3 ใบ (Past - Present - Future) 🐯</h3>
-            <div id="cardsDisplay" class="grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
+        <!-- Cards Layout Zone -->
+        <div id="cardsSection" class="hidden space-y-4">
+            <h3 id="statusText" class="text-center font-bold text-amber-300 text-base animate-pulse">
+                เสืออ้วนนักทำนายกำลังค่อยๆ เปิดไพ่ทีละใบ... 🐯
+            </h3>
+            <div id="cardsDisplay" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"></div>
         </div>
 
+        <!-- Result Box -->
         <div id="resultBox" class="hidden bg-amber-950/90 border-2 border-amber-400/50 rounded-2xl p-6 text-amber-100 leading-relaxed space-y-3">
             <div class="flex items-center space-x-2 border-b border-amber-800 pb-3">
                 <span class="text-2xl">📜</span>
-                <h3 class="font-bold text-amber-300 text-lg">คำทำนายจากแม่หมอเสืออ้วน</h3>
+                <h3 class="font-bold text-amber-300 text-lg">คำทำนายจากเสืออ้วนนักทำนาย</h3>
             </div>
             <div id="aiResponse" class="whitespace-pre-line text-sm sm:text-base text-amber-100/90">
-                กำลังอ่านพลังงานไพ่...
+                เสืออ้วนกำลังประมวลผลคำทำนายจากไพ่ทั้ง 10 ใบ...
             </div>
         </div>
 
@@ -78,9 +84,22 @@
     <script>
         const cardBackImg = "images/card-back.jpg";
 
-        // ฐานข้อมูลไพ่ทาโร่สากลครบ 78 ใบ
+        // ตำแหน่งผังไพ่มาตรฐานสากล 10 ใบ (Celtic Cross)
+        const celticCrossPositions = [
+            "ตำแหน่งที่ 1: สถานการณ์ปัจจุบัน",
+            "ตำแหน่งที่ 2: อุปสรรค / สิ่งท้าทาย",
+            "ตำแหน่งที่ 3: รากฐาน / อดีตที่ส่งผล",
+            "ตำแหน่งที่ 4: อดีตที่เพิ่งผ่านพ้น",
+            "ตำแหน่งที่ 5: ความคิด / เป้าหมาย",
+            "ตำแหน่งที่ 6: อนาคตอันใกล้",
+            "ตำแหน่งที่ 7: ทัศนคติของตนเอง",
+            "ตำแหน่งที่ 8: อิทธิพลภายนอก",
+            "ตำแหน่งที่ 9: ความหวังและความกลัว",
+            "ตำแหน่งที่ 10: บทสรุปและผลลัพธ์"
+        ];
+
+        // ฐานข้อมูลไพ่ทาโร่สากล 78 ใบ
         const tarotDeck = [
-            // Major Arcana (22 ใบ)
             { name: "The Fool", nameTh: "0. ไพ่เจ้าตัวยุ่งผู้เริ่มต้น", type: "Major Arcana", img: "images/cards/0_fool.jpg" },
             { name: "The Magician", nameTh: "I. ไพ่เสือวิเศษผู้มีพรสวรรค์", type: "Major Arcana", img: "images/cards/1_magician.jpg" },
             { name: "The High Priestess", nameTh: "II. ไพ่เสือหยินผู้มีสัญชาตญาณ", type: "Major Arcana", img: "images/cards/2_high_priestess.jpg" },
@@ -103,25 +122,17 @@
             { name: "The Sun", nameTh: "XIX. ไพ่เสือรับแดดสดใสเปี่ยมสุข", type: "Major Arcana", img: "images/cards/19_sun.jpg" },
             { name: "Judgement", nameTh: "XX. ไพ่การตื่นรู้และผลกรรม", type: "Major Arcana", img: "images/cards/20_judgement.jpg" },
             { name: "The World", nameTh: "XXI. ไพ่ความสำเร็จสมบูรณ์แบบ", type: "Major Arcana", img: "images/cards/21_world.jpg" },
-
-            // Minor Arcana - Wands (ไม้เท้า / ธาตุไฟ: 14 ใบ)
             ...["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Page", "Knight", "Queen", "King"].map(val => ({
-                name: `${val} of Wands`, nameTh: `ไพ่ ${val} ไม้เท้า (ธาตุไฟ)`, type: "Minor Arcana (Wands)", img: `images/cards/wands_${val.toLowerCase()}.jpg`
+                name: `${val} of Wands`, nameTh: `ไพ่ ${val} ไม้เท้า`, type: "Minor Arcana (Wands)", img: `images/cards/wands_${val.toLowerCase()}.jpg`
             })),
-
-            // Minor Arcana - Cups (ถ้วย / ธาตุน้ำ: 14 ใบ)
             ...["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Page", "Knight", "Queen", "King"].map(val => ({
-                name: `${val} of Cups`, nameTh: `ไพ่ ${val} ถ้วย (ธาตุน้ำ)`, type: "Minor Arcana (Cups)", img: `images/cards/cups_${val.toLowerCase()}.jpg`
+                name: `${val} of Cups`, nameTh: `ไพ่ ${val} ถ้วย`, type: "Minor Arcana (Cups)", img: `images/cards/cups_${val.toLowerCase()}.jpg`
             })),
-
-            // Minor Arcana - Swords (ดาบ / ธาตุลม: 14 ใบ)
             ...["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Page", "Knight", "Queen", "King"].map(val => ({
-                name: `${val} of Swords`, nameTh: `ไพ่ ${val} ดาบ (ธาตุลม)`, type: "Minor Arcana (Swords)", img: `images/cards/swords_${val.toLowerCase()}.jpg`
+                name: `${val} of Swords`, nameTh: `ไพ่ ${val} ดาบ`, type: "Minor Arcana (Swords)", img: `images/cards/swords_${val.toLowerCase()}.jpg`
             })),
-
-            // Minor Arcana - Pentacles (เหรียญ / ธาตุดิน: 14 ใบ)
             ...["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Page", "Knight", "Queen", "King"].map(val => ({
-                name: `${val} of Pentacles`, nameTh: `ไพ่ ${val} เหรียญ (ธาตุดิน)`, type: "Minor Arcana (Pentacles)", img: `images/cards/pentacles_${val.toLowerCase()}.jpg`
+                name: `${val} of Pentacles`, nameTh: `ไพ่ ${val} เหรียญ`, type: "Minor Arcana (Pentacles)", img: `images/cards/pentacles_${val.toLowerCase()}.jpg`
             }))
         ];
 
@@ -133,7 +144,7 @@
             const context = document.getElementById('context').value.trim();
 
             if (!question) {
-                alert("กรุณาพิมพ์คำถามก่อนเปิดไพ่ครับ 🐯");
+                alert("กรุณาพิมพ์คำถามให้เสืออ้วนนักทำนายทราบก่อนครับ 🐯");
                 return;
             }
 
@@ -142,36 +153,38 @@
             const cardsDisplay = document.getElementById('cardsDisplay');
             const resultBox = document.getElementById('resultBox');
             const aiResponse = document.getElementById('aiResponse');
+            const statusText = document.getElementById('statusText');
 
-            // สุ่มไพ่ 3 ใบแบบไม่ซ้ำกัน จากสำรับ 78 ใบ
+            // สุ่มไพ่ 10 ใบแบบไม่ซ้ำกัน
             const shuffled = [...tarotDeck].sort(() => 0.5 - Math.random());
-            drawnCards = [
-                { position: "ตำแหน่งที่ 1: อดีต / รากฐานปัญหา", ...shuffled[0] },
-                { position: "ตำแหน่งที่ 2: ปัจจุบัน / สถานการณ์ท้าทาย", ...shuffled[1] },
-                { position: "ตำแหน่งที่ 3: อนาคต / แนวทางแก้ไข", ...shuffled[2] }
-            ];
+            drawnCards = celticCrossPositions.map((pos, idx) => ({
+                position: pos,
+                ...shuffled[idx]
+            }));
 
             cardsSection.classList.remove('hidden');
             resultBox.classList.add('hidden');
+            statusText.innerText = "เสืออ้วนนักทำนายกำลังค่อยๆ พลิกเปิดไพ่ทีละใบ... 🐯";
+
+            // สร้าง UI แสดงไพ่หมอบคว่ำไว้ทั้ง 10 ใบ
             cardsDisplay.innerHTML = drawnCards.map((card, idx) => `
-                <div class="perspective cursor-pointer" onclick="flipCard(${idx})">
-                    <div id="card-inner-${idx}" class="card-inner relative w-full h-72 rounded-2xl shadow-xl">
-                        <div class="card-front absolute inset-0 bg-amber-800 border-2 border-amber-400 rounded-2xl flex flex-col items-center justify-center p-4 text-center overflow-hidden">
+                <div class="perspective">
+                    <div id="card-inner-${idx}" class="card-inner relative w-full h-64 rounded-xl shadow-lg">
+                        <div class="card-front absolute inset-0 bg-amber-800 border-2 border-amber-400 rounded-xl flex flex-col items-center justify-center p-2 text-center overflow-hidden">
                             <img src="${cardBackImg}" class="absolute inset-0 w-full h-full object-cover opacity-40" onerror="this.style.display='none'">
-                            <div class="relative z-10 space-y-2">
-                                <span class="text-4xl">🐯</span>
-                                <div class="text-xs text-amber-300 font-bold">${card.position}</div>
-                                <div class="text-xs bg-amber-500/80 text-amber-950 px-3 py-1 rounded-full font-bold">กดเพื่อเปิดไพ่</div>
+                            <div class="relative z-10 space-y-1">
+                                <span class="text-3xl">🐯</span>
+                                <div class="text-[11px] text-amber-300 font-bold leading-tight">${card.position}</div>
                             </div>
                         </div>
-                        <div class="card-back absolute inset-0 bg-amber-900 border-2 border-amber-300 rounded-2xl flex flex-col justify-between p-3 overflow-hidden">
-                            <div class="text-xs text-amber-300 font-bold text-center">${card.position}</div>
-                            <div class="h-44 rounded-xl overflow-hidden my-1 border border-amber-500/50 bg-amber-950/50 flex items-center justify-center">
-                                <img src="${card.img}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450/78350f/fde68a?text=${encodeURIComponent(card.name)}'">
+                        <div class="card-back absolute inset-0 bg-amber-900 border-2 border-amber-300 rounded-xl flex flex-col justify-between p-2 overflow-hidden">
+                            <div class="text-[10px] text-amber-300 font-bold text-center leading-tight">${card.position}</div>
+                            <div class="h-36 rounded-lg overflow-hidden my-1 border border-amber-500/50 bg-amber-950/50 flex items-center justify-center">
+                                <img src="${card.img}" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'text-3xl\'>🐯</div>';">
                             </div>
                             <div class="text-center">
-                                <div class="text-xs font-bold text-amber-200">${card.nameTh}</div>
-                                <div class="text-[10px] text-amber-400/80">${card.type}</div>
+                                <div class="text-xs font-bold text-amber-200 truncate">${card.nameTh}</div>
+                                <div class="text-[9px] text-amber-400/80 truncate">${card.type}</div>
                             </div>
                         </div>
                     </div>
@@ -179,15 +192,17 @@
             `).join('');
 
             btn.disabled = true;
-            btn.innerText = "🔮 แม่หมอเสืออ้วนกำลังสับไพ่และอ่านพลังงาน...";
+            btn.innerText = "🔮 กำลังเปิดไพ่ตามลำดับผัง...";
 
-            for (let i = 0; i < 3; i++) {
-                await new Promise(r => setTimeout(r, 300));
+            // ค่อยๆ พลิกเปิดไพ่ทีละใบโดยมีการหน่วงเวลา (Sequential Flipping)
+            for (let i = 0; i < 10; i++) {
+                await new Promise(r => setTimeout(r, 450));
                 flipCard(i);
             }
 
+            statusText.innerText = "เปิดไพ่ครบ 10 ใบแล้ว! เสืออ้วนกำลังเริ่มวิเคราะห์คำทำนาย... ✨";
             resultBox.classList.remove('hidden');
-            aiResponse.innerText = "🐯 แม่หมอเสืออ้วนกำลังคำนวณธาตุและถอดรหัสความหมายไพ่ทั้ง 3 ใบ...";
+            aiResponse.innerText = "🐯 เสืออ้วนนักทำนายกำลังเรียบเรียงคำทำนายจากผังไพ่ทั้ง 10 ใบ...";
 
             try {
                 const res = await fetch('/api/predict', {
@@ -199,20 +214,21 @@
                 const data = await res.json();
                 if (res.ok && data.result) {
                     aiResponse.innerText = data.result;
+                    statusText.innerText = "การทำนายดวงชะตาสมบูรณ์เรียบร้อย 🌟";
                 } else {
                     aiResponse.innerText = `เกิดข้อผิดพลาด: ${data.error || 'ไม่สามารถรับคำทำนายได้'}`;
                 }
             } catch (err) {
-                aiResponse.innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบคำทำนาย";
+                aiResponse.innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบทำนายดวง";
             } finally {
                 btn.disabled = false;
-                btn.innerText = "🐾 สับไพ่และสุ่มเปิด 3 ใบ";
+                btn.innerText = "🐾 สับไพ่และเริ่มเปิดไพ่ 10 ใบ";
             }
         }
 
         function flipCard(index) {
             const el = document.getElementById(`card-inner-${index}`);
-            if (el) el.classList.toggle('card-flipped');
+            if (el) el.classList.add('card-flipped');
         }
     </script>
 </body>
