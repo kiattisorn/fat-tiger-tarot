@@ -5,7 +5,7 @@ module.exports = async function handler(req, res) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-        return res.status(500).json({ error: 'ไม่พบ GEMINI_API_KEY ในระบบ Vercel Environment Variables' });
+        return res.status(500).json({ error: 'ไม่พบ GEMINI_API_KEY ในระบบ Vercel Environment Variables กรุณาตรวจสอบการตั้งค่าหลังบ้าน' });
     }
 
     const { category, question, context, drawnCards } = req.body;
@@ -45,7 +45,8 @@ ${cardsListText}
 `;
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        // ใช้ Endpoint โมเดลมาตรฐาน gemini-2.0-flash
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -64,10 +65,7 @@ ${cardsListText}
 
         if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
             let rawText = data.candidates[0].content.parts[0].text;
-            
-            // ป้องกัน SyntaxError: ตัด Markdown block (```json) ออกก่อนแปลงเป็น JSON
-            rawText = rawText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
-            
+            rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
             const parsedData = JSON.parse(rawText);
             return res.status(200).json(parsedData);
         } else {
